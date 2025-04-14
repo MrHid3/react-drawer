@@ -1,67 +1,95 @@
-import {Text, View, FlatList, StyleSheet, Alert} from "react-native";
+import {Text, View, FlatList, StyleSheet, Alert, TextInput} from "react-native";
 import {useEffect, useState} from "react";
 import MyButton from "../components/MyButton";
+import {createNote, loadNotes, getKeys} from "./Screen1"
+import * as SecureStore from "expo-secure-store";
 
 const Screen2 = ({navigation}) => {
-    let [people, setPeople] = useState({});
-
-    function deletePerson(name){
-
+    async function getKeys(){
+        const storedKeys = await SecureStore.getItemAsync("keys");
+        if (!storedKeys) {
+            await SecureStore.setItemAsync("keys", JSON.stringify([]));
+            return [];
+        }
+        return JSON.parse(storedKeys);
     }
 
-    useEffect(() => {
+    async function loadNotes() {
+        const storedKeys = await getKeys();
+        const notesArray = [];
+        for (const key of storedKeys) {
+            const content = await SecureStore.getItemAsync(key);
+            if (content) {
+                notesArray.push({title: key, content});
+            }
+        }
+        setNotes(notesArray);
+    }
 
-    }, [])
+    async function createNote(title, content){
+        const currentKeys = await getKeys();
+        if (currentKeys.includes(title))
+            return;
+        const newKeys = [...currentKeys, title];
+        await SecureStore.setItemAsync("keys", JSON.stringify(newKeys));
+        await SecureStore.setItemAsync(title, content);
+        await loadNotes();
+    }
 
+    const [title, setTitle] = useState("Title");
+    const [content, setContent] = useState("Content");
     return(
-        <View>
-            <FlatList
-                data={people}
-                renderItem={({ item }) =>
-                    <View style={styles.container}>
-                        <Text style={styles.name}>{item.id}: {item.name}</Text>
-                        <MyButton text="Details" style={styles} onPress={() => navigation.navigate('s3', {person: item})}></MyButton>
-                        <MyButton text="Delete" style={styles} onPress={() => Alert.alert(
-                            "Confirm",
-                            "Are you sure you want to delete " + item.name + "? This action cannot be undone",
-                            [{
-                                text: "Cancel"
-                            },
-                            {text: "OK",
-                                onPress: () => deletePerson(item.name)
-                            },
-                        ])}></MyButton>
-                    </View>}>
-            </FlatList>
+        <View style={styles.main}>
+            <View style={styles.container}>
+                <TextInput inputMode="text" style={styles.input} placeholder="Title" onChangeText={(text) => setTitle(text)} required></TextInput>
+                <TextInput inputMode="text" style={styles.input} placeholder="Content" onChangeText={(text) => setContent(text)} required></TextInput>
+                <MyButton text="Create Note" style={styles} onPress={async() => {await createNote(title, content); navigation.navigate("s1")}}></MyButton>
+            </View>
         </View>
     )
 }
 
 const styles = StyleSheet.create({
+    main: {
+        backgroundColor: "#ededed",
+        width: "100%",
+        height: "100%",
+    },
+    input: {
+        borderBottomWidth: 2,
+        borderBottomColor: "#7777dd",
+        borderBottomStyle: "solid",
+        display: "block",
+        width: 150,
+        height: 50,
+        lineHeight: 50,
+        fontSize: 20,
+        margin: 5,
+        padding: 0,
+        textAlign: "center",
+    },
     button: {
+        display: "block",
         backgroundColor: "#7777dd",
-        padding: 5,
-        borderRadius: 5,
+        width: "80%",
+        padding: 10,
+        borderRadius: 10,
+        margin: 15
     },
     buttonText: {
-        color: "black"
+        color: "#fdfdfd",
+        fontWeight: "bold",
+        fontSize: 18,
+        textAlign: "center"
     },
     container: {
         display: "flex",
         flexBasis: "50%",
-        flexDirection: "row",
+        justifyContent: "center",
         width: "100%",
-        height: "fitContent",
-        flexWrap: "wrap",
-        justifyContent: "space-evenly",
-        margin: 5,
+        alignItems: "center",
+        margin: "0 auto"
     },
-    name: {
-        textAlign: "center",
-        flexBasis: "100%",
-        padding: 10,
-        display: "block"
-    }
 })
 
 export default Screen2;

@@ -1,58 +1,66 @@
-import MyButton from '../components/MyButton';
-import {StyleSheet, TextInput, View, Text, Alert, FlatList} from "react-native";
+import {StyleSheet, View, Text, FlatList} from "react-native";
 import {useEffect, useState} from 'react'
 import * as SecureStore from 'expo-secure-store';
 
-const ip = "192.168.0.104"
-
 const Screen1 = ({ navigation }) => {
-    const [keys, setKeys] = useState([]);
-    const [notes, setNotes] = useState({});
-
-    function sendPerson(){
-        if(name == "" || password == "") {
-            console.log("fail")
-            return;
-        }
-    }
+    const [notes, setNotes] = useState([]); // Initialize as array, not object
 
     async function getKeys(){
-        if(await SecureStore.getItemAsync("keys") == null)
-            SecureStore.setItemAsync("keys", [])
-        else{
-            setKeys(SecureStore.getItemAsync("keys"))
-            keys.forEach(item => {
-                let note = SecureStore.getItemAsync(item)
-                setNotes([...notes, {title: item, content: note}]);
-            })
+        const storedKeys = await SecureStore.getItemAsync("keys");
+        if (!storedKeys) {
+            await SecureStore.setItemAsync("keys", JSON.stringify([]));
+            return [];
         }
+        return JSON.parse(storedKeys);
+    }
+
+    async function loadNotes() {
+        const storedKeys = await getKeys();
+        const notesArray = [];
+        for (const key of storedKeys) {
+            const content = await SecureStore.getItemAsync(key);
+            if (content) {
+                notesArray.push({title: key, content});
+            }
+        }
+        setNotes(notesArray);
     }
 
     async function createNote(title, content){
+        const currentKeys = await getKeys();
+        if (currentKeys.includes(title))
+            return;
+        const newKeys = [...currentKeys, title];
+        await SecureStore.setItemAsync("keys", JSON.stringify(newKeys));
         await SecureStore.setItemAsync(title, content);
-        await SecureStore.setItemAsync("keys", [...await SecureStore.getItemAsync("keys"), title]);
-        getKeys();
-        console.log(keys);
-        console.log(notes);
+        await loadNotes();
     }
 
     useEffect(() => {
-        getKeys();
-        createNote("skibi", "didi");
-
+        const initialize = async () => {
+            await loadNotes();
+            await createNote("skibi", "didi");
+            await createNote("title", "content");
+            await createNote("title2", "content2");
+            await createNote("title3", "content3");
+            const unsubscribe = navigation.addListener('focus', () => {
+                loadNotes();
+            })
+        };
+        initialize();
     }, []);
-
     return(
         <View style={styles.main}>
             <FlatList
-                numColumns="2"
+                numColumns={2}
                 data={notes}
+                keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item }) =>
                     <View style={styles.container}>
-                        <Text>{item.title}</Text>
+                        <Text style={styles.big}>{item.title}</Text>
                         <Text>{item.content}</Text>
-                    </View>}>
-            </FlatList>
+                    </View>}
+            />
         </View>
     )
 }
@@ -60,44 +68,22 @@ const Screen1 = ({ navigation }) => {
 const styles = StyleSheet.create({
     main: {
         display: "flex",
-        flexDirection: "column",
+        flexDirection: "row",
         justifyContent: "center",
-        alignItems: "center",
         backgroundColor: "#ededed",
         width: "100%",
         height: "100%",
     },
-    input: {
-        borderBottomWidth: 2,
-        borderBottomColor: "#7777dd",
-        borderBottomStyle: "solid",
-        display: "block",
-        width: 150,
-        height: 30,
-        lineHeight: 30,
+
+    big: {
         fontSize: 20,
-        margin: 5,
-        padding: 0,
-        textAlign: "center",
-    },
-    button: {
-        display: "block",
-        backgroundColor: "#7777dd",
-        width: "80%",
-        padding: 10,
-        borderRadius: 10,
-        margin: 15
-    },
-    buttonText: {
-        color: "#fdfdfd",
-        fontWeight: "bold",
-        fontSize: 18,
-        textAlign: "center"
     },
     container: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
+        flexBasis: "46%",
+        backgroundColor: "#cccccc",
+        borderRadius: 5,
+        margin: "2%",
+        padding: 10,
     },
     titleContainer: {
         backgroundColor: "#7777dd",
