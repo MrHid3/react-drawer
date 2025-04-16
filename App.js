@@ -3,7 +3,8 @@ import {Alert, Image, StyleSheet, View, Text} from 'react-native';
 import { NavigationContainer} from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import {DrawerContentScrollView, DrawerItemList, DrawerItem} from '@react-navigation/drawer';
-import Plus from "./src/images/plus.png"
+import Ionicons from '@expo/vector-icons/Ionicons';
+// import Plus from "./src/images/plus.png"
 import Screen1 from './screens/Screen1';
 import Screen2 from './screens/Screen2';
 
@@ -16,21 +17,8 @@ function App() {
                 <DrawerItemList {...props} />
                 <DrawerItem
                     label="Informacja"
-
                     onPress={() => Alert.alert("Informacja", "To jest super informacja o aplikacji")}
-                />
-
-            </DrawerContentScrollView>
-        );
-    }
-    function CustomDrawerContent2(props) {
-        return (
-            <DrawerContentScrollView {...props}>
-                <DrawerItemList {...props} />
-                <DrawerItem
-                    label="Dodaj notatkę"
-
-                    onPress={() => Alert.alert("Informacja", "To jest super informacja o aplikacji")}
+                    icon={() => <Ionicons name="information-circle-outline" size={24} color="black" />}
                 />
 
             </DrawerContentScrollView>
@@ -38,6 +26,8 @@ function App() {
     }
     return (
         <NavigationContainer style={styles.main}>
+        <Ionicons name="information-circle-outline" size={24} color="black" />
+
             <Drawer.Navigator drawerContent={(props) => <CustomDrawerContent {...props} />}>
                 <Drawer.Screen name="s1" component={Screen1} options={{
                     title: 'Notatki',

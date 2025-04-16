@@ -28,12 +28,26 @@ const Screen2 = ({navigation}) => {
 
     async function createNote(title, content){
         const currentKeys = await getKeys();
-        if (currentKeys.includes(title))
+        const colors = ["red", "green", "yellow", "blue", "cyan"]
+        if (currentKeys.includes(title)){
+            Alert.alert("Wrong title", "Title already exists")
             return;
-        const newKeys = [...currentKeys, title];
-        await SecureStore.setItemAsync("keys", JSON.stringify(newKeys));
-        await SecureStore.setItemAsync(title, content);
-        await loadNotes();
+        }else if(title.trim() == "" || content.trim() == ""){
+            Alert.alert("Content not provided", "Please provide a title and content")
+        }else{
+            const newKeys = [...currentKeys, title];
+            await SecureStore.setItemAsync("keys", JSON.stringify(newKeys));
+            console.log( colors[Math.floor(Math.random * colors.length)])
+            let note = {
+                title: title,
+                content: content,
+                time: Date.now(),
+                color: colors[Math.floor(Math.random() * colors.length)]
+            }
+            await SecureStore.setItemAsync(title, JSON.stringify(note));
+            navigation.navigate("s1");
+        }
+        
     }
 
     const [title, setTitle] = useState("Title");
@@ -41,9 +55,9 @@ const Screen2 = ({navigation}) => {
     return(
         <View style={styles.main}>
             <View style={styles.container}>
-                <TextInput inputMode="text" style={styles.input} placeholder="Title" onChangeText={(text) => setTitle(text)} required></TextInput>
-                <TextInput inputMode="text" style={styles.input} placeholder="Content" onChangeText={(text) => setContent(text)} required></TextInput>
-                <MyButton text="Create Note" style={styles} onPress={async() => {await createNote(title, content); navigation.navigate("s1")}}></MyButton>
+                <TextInput inputMode="text" style={styles.input} placeholder="Title" onChangeText={(text) => setTitle(text)} required ></TextInput>
+                <TextInput inputMode="text" style={styles.input} placeholder="Content" onChangeText={(text) => setContent(text)} required ></TextInput>
+                <MyButton text="Create Note" style={styles} onPress={async() => {await createNote(title, content)}}></MyButton>
             </View>
         </View>
     )
