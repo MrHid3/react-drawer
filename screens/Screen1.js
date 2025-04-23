@@ -4,6 +4,7 @@ import * as SecureStore from 'expo-secure-store';
 
 const Screen1 = ({ navigation }) => {
     const [notes, setNotes] = useState([]);
+    const [categories, setCategories] = useState([]);
 
     const colors = ["red", "green", "yellow", "blue", "cyan"]
     async function getKeys(){
@@ -15,21 +16,31 @@ const Screen1 = ({ navigation }) => {
         return JSON.parse(storedKeys);
     }
 
-    async function loadNotes() {
+    async function loadCategories() {
         const storedKeys = await getKeys();
-        const notesArray = [];
+        const categoriesArray = [];
         for (const key of storedKeys) {
+            const content = await SecureStore.getItemAsync(key);
+            if (content) {
+                categoriesArray.push(key);
+            }
+        }
+        setCategories(categoriesArray);
+    }
+
+    async function loadNotes() {
+        const notesArray = [];
+        for (const key of categories) {
             const note = await SecureStore.getItemAsync(key);
             if (note) {
-                notesArray.push(JSON.parse(note));
+                notesArray.push({category: key, content: JSON.parse(note)});
             }
         }
         setNotes(notesArray);
     }
 
-    async function deleteNote(title){
-        const storedKeys = await getKeys();
-        await SecureStore.setItem("keys", JSON.stringify(storedKeys.filter((item) => item != title)));
+    async function deleteNote(category, title){
+        await SecureStore.setItem(category, JSON.stringify(storedKeys.filter((item) => item != title)));
         loadNotes();
     }
     // SecureStore.setItemAsync("keys", JSON.stringify([]));
