@@ -14,7 +14,14 @@ function App() {
     function CustomDrawerContent(props) {
         return (
             <DrawerContentScrollView {...props}>
-                <DrawerItemList {...props} />
+                <DrawerItem 
+                    label="Notes"
+                    onPress={() => props.navigation.navigate("s1")}
+                />
+                <DrawerItem
+                    label="Add Note"
+                    onPress={() => props.navigation.navigate("s2")}
+                />
                 <DrawerItem
                     label="Informacja"
                     onPress={() => Alert.alert("Informacja", "To jest super informacja o aplikacji")}
@@ -30,21 +37,20 @@ function App() {
 
             <Drawer.Navigator drawerContent={(props) => <CustomDrawerContent {...props} />}>
                 <Drawer.Screen name="s1" component={Screen1} options={{
-                    title: 'Notatki',
+                    title: 'Notes',
                     headerTitle: '',
                     headerStyle: {
                         backgroundColor: '#7777dd',
                         boxShadow: 'none',
                     },
                 }} />
-                <Drawer.Screen options={{
-                    title: 'Dodaj notatkę',
+                <Drawer.Screen name="s2" component={Screen2} options={{
+                    title: 'Add Note',
                     headerTitle: '',
                     headerStyle: {
                         backgroundColor: '#7777dd',
                         boxShadow: 'none',
-                    },}}
-                               name="Dodaj notatkę" component={Screen2}/>
+                    },}}/>
             </Drawer.Navigator>
         </NavigationContainer>
     );
